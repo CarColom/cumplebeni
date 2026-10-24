@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     INVITACIÓN · ¡BENI CUMPLE 4! · Temática Superhéroes
+     Creada por CyC Invitaciones Inteligentes
+
+     Pensada para que la disfrute un nene de 4 años:
+       0. Pantalla "¡Alerta de superhéroes!" con un botón gigante
+          (al tocarlo: sonido, telaraña, confeti y arranca la música)
+       1. Portada de cómic: Spider-Man colgando de su tela, Iron Man
+          volando, Hulk espiando y Beni en una viñeta
+       2. La misión: cuándo, hora y lugar
+       3. Cuenta regresiva
+       4. "Tocá un superhéroe": cada uno hace su sonido y su frase
+       5. Fotos de Beni como viñetas de historieta
+       6. Disfraz de superhéroe
+       7. Confirmar asistencia (abre WhatsApp con el mensaje armado)
+       8. Cierre con todos los héroes
+     Extra: tocar cualquier parte vacía de la pantalla hace "¡POW!".
+
+     ⚙ Los datos para cambiar (fecha, mapa, WhatsApp) están en CONFIG,
+       al principio del <script>, al final del archivo.
+     ===================================================================== -->
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¡Beni cumple 4! · Misión Superhéroes</title>
+  <meta name="description" content="¡Superhéroes, los necesito! Vení a festejar mi cumple 4 el sábado 5 de diciembre de 18 a 21 hs en Roldán.">
+  <meta name="theme-color" content="#e23636">
+  <!-- Vista previa al compartir por WhatsApp (usar la dirección completa al publicar) -->
+  <meta property="og:title" content="¡Beni cumple 4! 🕷️ Misión Superhéroes">
+  <meta property="og:description" content="Sábado 5 de diciembre · 18 a 21 hs · Roldán">
+  <meta property="og:image" content="img/beni3.jpg">
+
+  <!-- Bangers: letra de historieta · Baloo 2: redondita y fácil de leer -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =================================================================
+       PALETA DE HÉROES
+       ================================================================= */
+    :root {
+      --rojo: #e23636;          /* Spider-Man / Iron Man */
+      --azul: #1f5fbf;          /* Capitán América */
+      --azul-noche: #0f2a5c;
+      --amarillo: #ffd23f;      /* destellos de cómic */
+      --verde: #3fae49;         /* Hulk */
+      --gris: #9aa7b8;          /* Thor */
+      --negro: #141414;         /* contornos de historieta */
+      --blanco: #ffffff;
+      --borde: 4px solid var(--negro);
+      --sombra: 6px 6px 0 var(--negro);   /* sombra dura, estilo cómic */
+      /* Puntitos de imprenta (trama de historieta) */
+      --trama: radial-gradient(circle, rgba(0, 0, 0, .14) 1.6px, transparent 1.8px) 0 0 / 14px 14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 600;
+      color: var(--negro); background: var(--amarillo); overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body.bloqueado { overflow: hidden; height: 100vh; }
+    img { max-width: 100%; display: block; }
+    [hidden] { display: none !important; }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+    .contenedor { width: min(880px, 100% - 32px); margin-inline: auto; }
+    .seccion { padding: 80px 0; position: relative; overflow: hidden; text-align: center; }
+
+    /* ===== Títulos de historieta: letras con contorno negro y sombra ===== */
+    .titulo-comic {
+      font-family: 'Bangers', cursive; font-weight: 400; letter-spacing: .04em; line-height: 1;
+      font-size: clamp(2.6rem, 10vw, 4.2rem); color: var(--blanco);
+      -webkit-text-stroke: 2px var(--negro); paint-order: stroke fill;
+      text-shadow: 4px 4px 0 var(--negro);
+    }
+    /* Cartelito amarillo de narrador, como en los cómics */
+    .narrador {
+      display: inline-block; background: var(--amarillo); border: 3px solid var(--negro);
+      padding: 4px 16px; font-family: 'Bangers', cursive; font-size: 1.3rem; letter-spacing: .06em;
+      transform: rotate(-2deg); box-shadow: 4px 4px 0 var(--negro); margin-bottom: 14px;
+    }
+
+    /* ===== Botones de cómic ===== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 14px 28px; border: var(--borde); border-radius: 16px; box-shadow: var(--sombra);
+      background: var(--rojo); color: var(--blanco);
+      font-family: 'Bangers', cursive; font-size: 1.5rem; letter-spacing: .06em;
+      transition: transform .12s, box-shadow .12s;
+    }
+    .btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--negro); }  /* efecto "apretado" */
+    .btn-azul { background: var(--azul); }
+    .btn-amarillo { background: var(--amarillo); color: var(--negro); }
+    .btn svg { width: 24px; height: 24px; }
+
+    /* =================================================================
+       0. PANTALLA DE ALERTA (intro)
+       ================================================================= */
+    .alerta {
+      position: fixed; inset: 0; z-index: 1000; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+      background: var(--trama), var(--azul-noche); color: var(--blanco); text-align: center; padding: 24px;
+      transition: transform .7s cubic-bezier(.7, 0, .3, 1);
+    }
+    /* Rayos giratorios de fondo */
+    .alerta::before {
+      content: ''; position: absolute; inset: -50%;
+      background: repeating-conic-gradient(rgba(255, 255, 255, .07) 0 10deg, transparent 10deg 20deg);
+      animation: girar 30s linear infinite;
+    }
+    @keyframes girar { to { transform: rotate(360deg); } }
+    .alerta > * { position: relative; z-index: 1; }
+    .alerta.cerrada { transform: translateY(-100%); }   /* se va hacia arriba como una persiana */
+    .alerta-titulo { font-family: 'Bangers', cursive; font-size: clamp(2.2rem, 9vw, 3.6rem); line-height: 1; letter-spacing: .05em; color: var(--amarillo); -webkit-text-stroke: 2px var(--negro); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--rojo); }
+    .alerta-sirena { width: 70px; height: 70px; animation: sirena .6s steps(2) infinite; }
+    @keyframes sirena { 50% { filter: hue-rotate(200deg); } }
+    .alerta p { font-size: 1.15rem; max-width: 320px; }
+    /* El gran botón rojo: late para que den ganas de tocarlo */
+    .boton-gigante {
+      width: 190px; height: 190px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ff7a7a, var(--rojo) 55%, #a01818);
+      border: 6px solid var(--negro); box-shadow: 0 10px 0 #7a1010, 0 0 0 10px rgba(255, 255, 255, .15);
+      display: grid; place-items: center; animation: latir 1.1s ease-in-out infinite;
+    }
+    .boton-gigante:active { transform: translateY(8px); box-shadow: 0 2px 0 #7a1010; }
+    .boton-gigante span { font-family: 'Bangers', cursive; font-size: 2.6rem; color: var(--blanco); -webkit-text-stroke: 1.5px var(--negro); paint-order: stroke fill; line-height: 1; }
+    .boton-gigante svg { display: block; width: 54px; height: 54px; margin: 0 auto 4px; }
+    @keyframes latir { 50% { transform: scale(1.08); } }
+    /* Telaraña que se dibuja sobre la pantalla al tocar el botón */
+    .telarana-intro { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+    /* pathLength="100" en el SVG: el trazo mide 100 "unidades" sin importar su largo real */
+    .telarana-intro path { stroke: var(--blanco); stroke-width: 3; fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; }
+    .alerta.activando .telarana-intro path { animation: dibujar .9s ease-out forwards; }
+    @keyframes dibujar { to { stroke-dashoffset: 0; } }
+    /* Destello blanco */
+    .destello { position: fixed; inset: 0; background: var(--blanco); z-index: 1100; opacity: 0; pointer-events: none; }
+    .destello.activo { animation: flash .5s ease-out; }
+    @keyframes flash { 0% { opacity: .95; } 100% { opacity: 0; } }
+
+    /* =================================================================
+       1. PORTADA
+       ================================================================= */
+    .portada {
+      min-height: 100vh; min-height: 100svh; position: relative; overflow: hidden;
+      padding: 120px 16px 150px; text-align: center;
+      /* Explosión de rayos rojo/amarillo + trama de puntos */
+      background: var(--trama), repeating-conic-gradient(from 0deg at 50% 45%, #ffd23f 0 9deg, #ffbf1f 9deg 18deg);
+    }
+    .portada-titulo { position: relative; z-index: 3; }
+    .portada-titulo .chico { font-family: 'Bangers', cursive; font-size: clamp(1.6rem, 6vw, 2.2rem); letter-spacing: .1em; background: var(--negro); color: var(--amarillo); display: inline-block; padding: 2px 14px; transform: rotate(-3deg); }
+    .nombre {
+      font-family: 'Bangers', cursive; font-weight: 400; line-height: .9; letter-spacing: .02em;
+      font-size: clamp(6rem, 30vw, 10rem); color: var(--rojo);
+      -webkit-text-stroke: 4px var(--negro); paint-order: stroke fill;
+      text-shadow: 6px 6px 0 var(--azul), 10px 10px 0 var(--negro);
+      animation: aparecer-golpe .8s cubic-bezier(.3, 1.6, .5, 1) both;
+    }
+    .cumple-linea { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; }
+    .cumple-linea .titulo-comic { font-size: clamp(2.6rem, 11vw, 4rem); }
+    /* El "4" adentro de una estrella-explosión que late y gira */
+    /* La sombra va en el contenedor: si estuviera en el mismo elemento que el
+       recorte de estrella (clip-path), el recorte la cortaría */
+    .estrella-4 {
+      width: clamp(120px, 34vw, 170px); aspect-ratio: 1; display: grid; place-items: center;
+      filter: drop-shadow(5px 5px 0 var(--negro));
+      animation: girar-latir 4s ease-in-out infinite;
+    }
+    .estrella-4 .borde { width: 100%; height: 100%; display: grid; place-items: center; background: var(--negro); padding: 6px; }
+    .estrella-4 .relleno { width: 100%; height: 100%; display: grid; place-items: center; background: var(--amarillo); }
+    .estrella-4 span { font-family: 'Bangers', cursive; font-size: clamp(4.4rem, 13vw, 6.4rem); color: var(--rojo); -webkit-text-stroke: 3px var(--negro); paint-order: stroke fill; line-height: 1; margin-top: 8px; }
+    @keyframes girar-latir { 0%, 100% { transform: rotate(-8deg) scale(1); } 50% { transform: rotate(8deg) scale(1.08); } }
+    @keyframes aparecer-golpe { from { transform: scale(0) rotate(-20deg); } }
+
+    /* Viñeta con la foto de Beni + globo de diálogo */
+    .vineta {
+      position: relative; z-index: 3; width: min(300px, 78%); margin: 34px auto 0;
+      border: 5px solid var(--negro); box-shadow: 8px 8px 0 var(--negro); background: var(--blanco);
+      transform: rotate(2deg);
+    }
+    .vineta img { aspect-ratio: 3 / 4; object-fit: cover; width: 100%; }
+    .globo {
+      position: absolute; top: -34px; left: -30px; z-index: 4; background: var(--blanco);
+      border: 4px solid var(--negro); border-radius: 50%; padding: 18px 20px; width: 160px;
+      font-family: 'Bangers', cursive; font-size: 1.35rem; line-height: 1.05; letter-spacing: .03em;
+      transform: rotate(-6deg); box-shadow: 4px 4px 0 var(--negro);
+      animation: flotar 3s ease-in-out infinite;
+    }
+    .globo::after {   /* colita del globo apuntando a Beni */
+      content: ''; position: absolute; bottom: -22px; right: 34px; width: 26px; height: 26px;
+      background: var(--blanco); border-right: 4px solid var(--negro); border-bottom: 4px solid var(--negro);
+      transform: skew(20deg) rotate(45deg);
+    }
+    @keyframes flotar { 50% { transform: rotate(-6deg) translateY(-8px); } }
+
+    /* Spider-Man colgando cabeza abajo de su telaraña y balanceándose */
+    .spidey-colgado {
+      position: absolute; top: 0; right: 6%; z-index: 4; width: 110px;
+      transform-origin: top center; animation: balanceo 3.2s ease-in-out infinite;
+    }
+    .spidey-colgado .hilo { width: 3px; height: 90px; background: var(--blanco); margin: 0 auto; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
+    .spidey-colgado img { transform: rotate(180deg); margin-top: -6px; filter: drop-shadow(3px 3px 0 var(--negro)); }
+    @keyframes balanceo { 0%, 100% { transform: rotate(10deg); } 50% { transform: rotate(-10deg); } }
+    /* Telaraña decorativa en la esquina superior izquierda */
+    .telarana-esquina { position: absolute; top: 0; left: 0; width: 170px; z-index: 2; opacity: .9; }
+
+    /* Iron Man cruzando la pantalla volando, cada tanto */
+    .ironman-volando {
+      position: absolute; top: 18%; left: 100%; width: 110px; z-index: 5;
+      animation: volar-ironman 9s ease-in-out 2s infinite;
+      filter: drop-shadow(3px 3px 0 var(--negro));
+    }
+    .ironman-volando::after {  /* estela de fuego de las botas */
+      content: ''; position: absolute; right: -40px; bottom: 6px; width: 60px; height: 22px; border-radius: 50%;
+      background: radial-gradient(ellipse at left, #fff6b0, #ffb21f 40%, transparent 70%);
+    }
+    @keyframes volar-ironman {
+      0%   { transform: translate(0, 0) rotate(-8deg); }
+      45%  { transform: translate(calc(-100vw - 160px), 80px) rotate(-14deg); }
+      100% { transform: translate(calc(-100vw - 160px), 80px) rotate(-14deg); }
+    }
+    /* Hulk espiando desde abajo, sube y baja */
+    .hulk-espia {
+      position: absolute; bottom: -40px; left: 4%; width: 130px; z-index: 4;
+      animation: espiar 5s ease-in-out infinite; filter: drop-shadow(3px 3px 0 var(--negro));
+    }
+    @keyframes espiar { 0%, 60%, 100% { transform: translateY(70%); } 70%, 90% { transform: translateY(0); } }
+    .bajar { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 5; font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: .1em; animation: rebote 1.4s infinite; }
+    @keyframes rebote { 50% { transform: translate(-50%, 8px); } }
+
+    /* =================================================================
+       2. LA MISIÓN (cuándo y dónde)
+       ================================================================= */
+    .mision { background: var(--trama), var(--azul); }
+    .expediente {
+      position: relative; background: var(--blanco); border: var(--borde); box-shadow: 10px 10px 0 var(--negro);
+      border-radius: 18px; padding: 34px 22px 28px; margin-top: 26px; text-align: center;
+    }
+    .sello {   /* sello rojo "MISIÓN ESPECIAL" */
+      position: absolute; top: -20px; right: -10px; transform: rotate(10deg);
+      border: 4px solid var(--rojo); color: var(--rojo); background: var(--blanco);
+      font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: .08em; padding: 2px 12px; border-radius: 8px;
+    }
+    .datos { display: grid; gap: 14px; margin: 8px 0 24px; }
+    .dato { display: flex; align-items: center; gap: 14px; text-align: left; background: #f3f6fb; border: 3px solid var(--negro); border-radius: 14px; padding: 12px 16px; }
+    .dato-icono { width: 56px; height: 56px; flex-shrink: 0; border-radius: 50%; border: 3px solid var(--negro); display: grid; place-items: center; }
+    .dato-icono svg { width: 30px; height: 30px; }
+    .dato small { display: block; font-family: 'Bangers', cursive; font-size: 1rem; letter-spacing: .08em; color: #5a6475; }
+    .dato strong { font-size: clamp(1.2rem, 4.5vw, 1.5rem); line-height: 1.2; font-weight: 800; }
+    .acciones { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .capi-escudo { position: absolute; bottom: -30px; left: -26px; width: 120px; transform: rotate(-8deg); filter: drop-shadow(3px 3px 0 var(--negro)); }
+
+    /* =================================================================
+       3. CUENTA REGRESIVA
+       ================================================================= */
+    .cuenta { background: var(--trama), var(--rojo); }
+    .reloj { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 28px; }
+    .reloj > div { border: var(--borde); box-shadow: 5px 5px 0 var(--negro); border-radius: 14px; padding: 12px 2px 8px; background: var(--blanco); }
+    .reloj > div:nth-child(1) { background: var(--amarillo); }
+    .reloj > div:nth-child(2) { background: #8fd3ff; }
+    .reloj > div:nth-child(3) { background: #9be29f; }
+    .reloj > div:nth-child(4) { background: #ffb3b3; }
+    .reloj strong { display: block; font-family: 'Bangers', cursive; font-size: clamp(2.4rem, 11vw, 3.6rem); line-height: 1; }
+    .reloj span { font-family: 'Bangers', cursive; font-size: .95rem; letter-spacing: .08em; }
+    .reloj .tic { animation: tic .35s ease-out; }   /* los segundos "saltan" en cada tic */
+    @keyframes tic { 30% { transform: scale(1.25) rotate(-6deg); } }
+    .hoy { font-family: 'Bangers', cursive; font-size: 2.4rem; margin-top: 20px; color: var(--amarillo); -webkit-text-stroke: 1.5px var(--negro); paint-order: stroke fill; }
+    /* Thor con rayos que titilan detrás */
+    .thor-cuenta { width: 150px; margin: 24px auto -10px; position: relative; filter: drop-shadow(3px 3px 0 var(--negro)); }
+    .rayo { position: absolute; width: 34px; fill: var(--amarillo); stroke: var(--negro); stroke-width: 3; animation: titilar 1.8s steps(1) infinite; }
+    .rayo.r1 { top: 0; left: -40px; }
+    .rayo.r2 { top: 30px; right: -46px; animation-delay: .9s; }
+    @keyframes titilar { 0%, 40% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+    /* =================================================================
+       4. TOCÁ UN SUPERHÉROE
+       ================================================================= */
+    .equipo { background: var(--trama), #f4f4f4; }
+    /* flex + wrap: si una fila queda incompleta, sus tarjetas quedan centradas */
+    .heroes { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin-top: 28px; }
+    .heroe {
+      flex: 0 1 150px;
+      position: relative; border: var(--borde); border-radius: 18px; box-shadow: var(--sombra);
+      padding: 14px 8px 10px; background: var(--color, var(--rojo)); overflow: hidden;
+      transition: transform .15s;
+    }
+    .heroe::before { content: ''; position: absolute; inset: 0; background: var(--trama); }   /* trama encima del color */
+    .heroe img { position: relative; height: 150px; width: 100%; object-fit: contain; filter: drop-shadow(3px 3px 0 var(--negro)); }
+    .heroe span { position: relative; display: block; margin-top: 8px; font-family: 'Bangers', cursive; font-size: 1.25rem; letter-spacing: .05em; color: var(--blanco); -webkit-text-stroke: 1.5px var(--negro); paint-order: stroke fill; }
+    .heroe.saltando { animation: saltar .6s cubic-bezier(.3, 1.8, .5, 1); }
+    @keyframes saltar { 30% { transform: translateY(-26px) rotate(-6deg) scale(1.06); } 60% { transform: translateY(0) rotate(4deg); } }
+    /* Frase del héroe tocado */
+    .frase-heroe {
+      min-height: 64px; margin-top: 24px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Bangers', cursive; font-size: clamp(1.5rem, 6vw, 2rem); letter-spacing: .04em;
+    }
+    .frase-heroe span { background: var(--blanco); border: var(--borde); border-radius: 30px; padding: 8px 22px; box-shadow: 4px 4px 0 var(--negro); animation: aparecer-golpe .4s cubic-bezier(.3, 1.6, .5, 1); }
+
+    /* =================================================================
+       5. FOTOS (viñetas)
+       ================================================================= */
+    .fotos { background: var(--trama), var(--verde); }
+    .tira { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+    .panel-foto { position: relative; border: 5px solid var(--negro); box-shadow: 7px 7px 0 var(--negro); background: var(--blanco); transition: transform .2s; }
+    .panel-foto:nth-child(1) { transform: rotate(-3deg); }
+    .panel-foto:nth-child(2) { transform: rotate(2deg) translateY(16px); }
+    .panel-foto:nth-child(3) { transform: rotate(-1.5deg); }
+    .panel-foto img { aspect-ratio: 3 / 4; object-fit: cover; width: 100%; }
+    .panel-foto p {   /* cartelito de narrador sobre la foto */
+      position: absolute; left: -8px; top: -12px; max-width: 90%; background: var(--amarillo); border: 3px solid var(--negro);
+      font-family: 'Bangers', cursive; font-size: 1rem; letter-spacing: .04em; padding: 2px 8px; text-align: left; line-height: 1.15;
+    }
+    .panel-foto.sacudir { animation: sacudir .4s; }
+    @keyframes sacudir { 25% { transform: translateX(-8px) rotate(-4deg); } 75% { transform: translateX(8px) rotate(4deg); } }
+    @media (max-width: 600px) {
+      .tira { grid-template-columns: 1fr 1fr; }
+      .panel-foto:nth-child(3) { grid-column: span 2; width: 70%; margin: 18px auto 0; }
+    }
+
+    /* =================================================================
+       6. DISFRAZ
+       ================================================================= */
+    .disfraz { background: var(--trama), var(--azul-noche); color: var(--blanco); }
+    .disfraz p { font-size: 1.2rem; max-width: 520px; margin: 14px auto 0; }
+    .mascaras { display: flex; justify-content: center; align-items: flex-end; gap: 4px; margin-top: 26px; }
+    .mascaras img { height: 110px; width: auto; filter: drop-shadow(3px 3px 0 var(--negro)); animation: bailar 1.2s ease-in-out infinite; }
+    .mascaras img:nth-child(2) { animation-delay: .2s; } .mascaras img:nth-child(3) { animation-delay: .4s; }
+    .mascaras img:nth-child(4) { animation-delay: .6s; } .mascaras img:nth-child(5) { animation-delay: .8s; }
+    @keyframes bailar { 50% { transform: translateY(-14px) rotate(4deg); } }
+
+    /* =================================================================
+       7. CONFIRMAR ASISTENCIA
+       ================================================================= */
+    .confirmar { background: var(--trama), var(--amarillo); }
+    .formulario { background: var(--blanco); border: var(--borde); box-shadow: 10px 10px 0 var(--negro); border-radius: 18px; padding: 26px 20px; margin-top: 26px; text-align: left; display: grid; gap: 16px; }
+    .formulario label { font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+    .formulario input, .formulario select { width: 100%; padding: 12px 14px; border: 3px solid var(--negro); border-radius: 12px; font: inherit; font-size: 1.1rem; background: #f6f8fc; }
+    .formulario input:focus, .formulario select:focus { outline: 3px solid var(--azul); outline-offset: 2px; }
+    .opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .opciones input { position: absolute; opacity: 0; }   /* radio oculto: se ve el botón grande */
+    .opciones label {
+      display: block; text-align: center; border: 3px solid var(--negro); border-radius: 12px; padding: 12px 6px;
+      background: #f6f8fc; cursor: pointer; font-size: 1.15rem; margin: 0;
+    }
+    .opciones input:checked + label { background: var(--verde); color: var(--blanco); box-shadow: 3px 3px 0 var(--negro); }
+    .opciones input#noVa:checked + label { background: #8a94a6; }
+    .formulario .btn { width: 100%; background: var(--verde); }
+
+    /* =================================================================
+       8. CIERRE
+       ================================================================= */
+    .cierre { background: var(--trama), repeating-conic-gradient(from 0deg at 50% 60%, #e23636 0 9deg, #c92a2a 9deg 18deg); padding: 80px 16px 40px; text-align: center; color: var(--blanco); position: relative; overflow: hidden; }
+    .fila-heroes { display: flex; justify-content: center; align-items: flex-end; margin: 26px auto 0; max-width: 620px; }
+    .fila-heroes img { width: 20%; filter: drop-shadow(3px 3px 0 var(--negro)); animation: bailar 1.4s ease-in-out infinite; }
+    .fila-heroes img:nth-child(even) { animation-delay: .35s; }
+    .firma { font-family: 'Bangers', cursive; font-size: 2.6rem; letter-spacing: .04em; color: var(--amarillo); -webkit-text-stroke: 1.5px var(--negro); paint-order: stroke fill; margin-top: 10px; }
+    .creditos { font-size: .8rem; margin-top: 28px; opacity: .9; }
+    .creditos a { text-decoration: underline; }
+
+    /* =================================================================
+       EFECTOS: onomatopeyas, confeti y botón-escudo de música
+       ================================================================= */
+    /* "¡POW!" "¡BAM!": estrella de cómic que aparece donde se toca */
+    .boom {   /* contenedor: posición, sombra y animación */
+      position: fixed; z-index: 1200; width: 130px; height: 130px; margin: -65px 0 0 -65px;
+      pointer-events: none; filter: drop-shadow(4px 4px 0 var(--negro));
+      animation: boom .9s cubic-bezier(.3, 1.6, .5, 1) forwards;
+    }
+    .boom div {   /* estrella recortada con el color */
+      width: 100%; height: 100%; display: grid; place-items: center;
+      background: var(--negro); padding: 5px;
+    }
+    .boom div div { background: var(--color, var(--amarillo)); padding: 0; }
+    .boom span { font-family: 'Bangers', cursive; font-size: 2rem; color: var(--blanco); -webkit-text-stroke: 2px var(--negro); paint-order: stroke fill; transform: rotate(-8deg); }
+    @keyframes boom { 0% { transform: scale(0) rotate(-30deg); } 25% { transform: scale(1.1) rotate(5deg); } 75% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.2); opacity: 0; } }
+
+    .confeti { position: fixed; top: -20px; z-index: 1150; width: 12px; height: 16px; pointer-events: none; animation: caer var(--dur) linear var(--delay) forwards; }
+    @keyframes caer { to { transform: translate(var(--x), 110vh) rotate(var(--giro)); } }
+
+    /* Botón de música = escudo del Capitán América (gira mientras suena) */
+    .btn-escudo {
+      position: fixed; right: 16px; bottom: 16px; z-index: 900; width: 64px; height: 64px; border-radius: 50%;
+      border: 3px solid var(--negro); box-shadow: 4px 4px 0 var(--negro);
+      background: radial-gradient(circle, var(--azul) 0 22%, var(--rojo) 22% 40%, #e9eef5 40% 58%, var(--rojo) 58% 100%);
+      display: grid; place-items: center;
+    }
+    .btn-escudo svg { width: 22px; height: 22px; fill: var(--blanco); }
+    .btn-escudo.sonando { animation: girar 3s linear infinite; }
+    .btn-escudo .icono-pausa { display: none; }
+    .btn-escudo.sonando .icono-pausa { display: block; }
+    .btn-escudo.sonando .icono-play { display: none; }
+
+    /* Aparición al hacer scroll: entran "de golpe", como en un cómic */
+    .revelar { opacity: 0; transform: scale(.85) rotate(-2deg); transition: opacity .5s, transform .5s cubic-bezier(.3, 1.6, .5, 1); }
+    .revelar.visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .revelar { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body class="bloqueado">
+
+  <!-- =================================================================
+       0. ¡ALERTA DE SUPERHÉROES! (tocar el botón abre la invitación)
+       ================================================================= -->
+  <div class="alerta" id="alerta">
+    <!-- Sirena -->
+    <svg class="alerta-sirena" viewBox="0 0 64 64"><path d="M16 46V30a16 16 0 0 1 32 0v16Z" fill="#e23636" stroke="#141414" stroke-width="3"/><rect x="10" y="46" width="44" height="10" rx="3" fill="#ffd23f" stroke="#141414" stroke-width="3"/><path d="M32 4v8M8 14l6 6M56 14l-6 6" stroke="#ffd23f" stroke-width="4" stroke-linecap="round"/></svg>
+    <h1 class="alerta-titulo">¡ALERTA DE<br>SUPERHÉROES!</h1>
+    <p>Beni necesita a su equipo para una misión muy especial…</p>
+    <button class="boton-gigante" id="botonGigante" aria-label="Abrir la invitación">
+      <div>
+        <!-- Arañita -->
+        <svg viewBox="0 0 64 64" fill="#141414"><ellipse cx="32" cy="36" rx="9" ry="12"/><circle cx="32" cy="20" r="6"/><path d="M24 30 8 22M24 36 6 36M24 42 8 52M40 30l16-8M40 36h18M40 42l16 10" stroke="#141414" stroke-width="3" stroke-linecap="round"/></svg>
+        <span>¡TOCÁ!</span>
+      </div>
+    </button>
+    <!-- Telaraña que se dibuja al tocar -->
+    <svg class="telarana-intro" viewBox="0 0 400 800" preserveAspectRatio="none" aria-hidden="true">
+      <path pathLength="100" d="M200 400 L0 0 M200 400 L200 0 M200 400 L400 0 M200 400 L400 400 M200 400 L400 800 M200 400 L200 800 M200 400 L0 800 M200 400 L0 400"/>
+      <path pathLength="100" d="M140 280 Q200 300 260 280 Q290 340 300 400 Q290 460 260 520 Q200 500 140 520 Q110 460 100 400 Q110 340 140 280Z"/>
+      <path pathLength="100" d="M80 160 Q200 200 320 160 Q370 280 400 400 Q370 520 320 640 Q200 600 80 640 Q30 520 0 400 Q30 280 80 160Z"/>
+    </svg>
+  </div>
+  <div class="destello" id="destello"></div>
+
+  <main>
+    <!-- =================================================================
+         1. PORTADA DE CÓMIC
+         ================================================================= -->
+    <header class="portada" id="inicio">
+      <!-- Telaraña en la esquina -->
+      <svg class="telarana-esquina" viewBox="0 0 170 170" fill="none" stroke="#fff" stroke-width="2.5" aria-hidden="true">
+        <path d="M0 0 170 60M0 0 120 120M0 0 60 170M0 0 170 0M0 0 0 170"/>
+        <path d="M40 0q4 14 -2 16q14 2 12 12q12 0 16 8q-10 4 -12 16q-12 -2 -16 6q-4-10 -18-8q2-14 -20-16"/>
+        <path d="M90 0q6 30 -6 36q30 4 26 26q24 2 32 18q-22 8 -26 32q-24 -6 -32 14q-8-20 -36-16q4-26 -38-32"/>
+      </svg>
+
+      <!-- Spider-Man colgado de su tela -->
+      <div class="spidey-colgado" aria-hidden="true">
+        <div class="hilo"></div>
+        <img src="img/spiderman.png" alt="">
+      </div>
+
+      <div class="portada-titulo">
+        <p class="chico">¡SUPER CUMPLE!</p>
+        <h1 class="nombre">BENI</h1>
+        <div class="cumple-linea">
+          <span class="titulo-comic">CUMPLE</span>
+          <!-- clip-path de estrella generado por JS (clase .estrella) -->
+          <div class="estrella-4"><div class="borde estrella"><div class="relleno estrella"><span>4</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- Viñeta con Beni y globo de diálogo -->
+      <div class="vineta">
+        <div class="globo">¡Vení a mi cumple, superhéroe!</div>
+        <img src="img/beni3.jpg" alt="Beni disfrazado de Spider-Man haciendo la pose de lanzar telaraña">
+      </div>
+
+      <img class="ironman-volando" src="img/ironman.png" alt="" aria-hidden="true">
+      <img class="hulk-espia" src="img/hulk.png" alt="" aria-hidden="true">
+      <a href="#mision" class="bajar">▼ ¡BAJÁ! ▼</a>
+    </header>
+
+    <!-- =================================================================
+         2. LA MISIÓN (fecha, hora y lugar)
+         ================================================================= -->
+    <section class="seccion mision" id="mision">
+      <div class="contenedor">
+        <div class="revelar">
+          <p class="narrador">ATENCIÓN, SUPERHÉROE…</p>
+          <h2 class="titulo-comic">TU MISIÓN</h2>
+        </div>
+        <div class="expediente revelar">
+          <span class="sello">MISIÓN CUMPLE</span>
+          <div class="datos">
+            <div class="dato">
+              <div class="dato-icono" style="background:var(--amarillo)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              </div>
+              <div><small>CUÁNDO</small><strong>Sábado 5 de diciembre</strong></div>
+            </div>
+            <div class="dato">
+              <div class="dato-icono" style="background:#8fd3ff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              </div>
+              <div><small>HORARIO</small><strong>De 18 a 21 hs</strong></div>
+            </div>
+            <div class="dato">
+              <div class="dato-icono" style="background:#ffb3b3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.4"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <!-- ⚠ Completá el nombre y la dirección del salón -->
+              <div><small>BASE SECRETA</small><strong>Salón de fiestas · Roldán</strong></div>
+            </div>
+          </div>
+          <div class="acciones">
+            <a class="btn btn-azul" id="btnMapa" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              ¿Cómo llego?
+            </a>
+            <button class="btn btn-amarillo" id="btnAgendar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>
+              Agendar
+            </button>
+          </div>
+          <img class="capi-escudo" src="img/capitan.png" alt="" aria-hidden="true">
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         3. CUENTA REGRESIVA
+         ================================================================= -->
+    <section class="seccion cuenta">
+      <div class="contenedor revelar">
+        <div class="thor-cuenta">
+          <svg class="rayo r1" viewBox="0 0 24 40"><path d="M14 0 2 22h9l-4 18L22 14h-9l5-14Z"/></svg>
+          <svg class="rayo r2" viewBox="0 0 24 40"><path d="M14 0 2 22h9l-4 18L22 14h-9l5-14Z"/></svg>
+          <img src="img/thor.png" alt="" aria-hidden="true">
+        </div>
+        <h2 class="titulo-comic" id="cuentaTitulo">¡FALTAN!</h2>
+        <div class="reloj" id="reloj">
+          <div><strong id="dias">0</strong><span>DÍAS</span></div>
+          <div><strong id="horas">0</strong><span>HORAS</span></div>
+          <div><strong id="minutos">0</strong><span>MIN</span></div>
+          <div><strong id="segundos">0</strong><span>SEG</span></div>
+        </div>
+        <p class="hoy" id="hoy" hidden>¡HOY ES LA MISIÓN!</p>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         4. TOCÁ UN SUPERHÉROE
+         Cada botón tiene: data-boom (onomatopeya), data-frase,
+         data-sonido (efecto sintetizado en JS) y --color de fondo.
+         ================================================================= -->
+    <section class="seccion equipo">
+      <div class="contenedor">
+        <div class="revelar">
+          <p class="narrador">¡EL EQUIPO DE BENI!</p>
+          <h2 class="titulo-comic" style="color:var(--rojo)">TOCÁ UN SUPERHÉROE</h2>
+        </div>
+        <div class="heroes revelar">
+          <button class="heroe" style="--color:var(--rojo)" data-boom="¡THWIP!" data-sonido="thwip" data-frase="¡Telaraña lista para la fiesta!">
+            <img src="img/spiderman.png" alt=""><span>SPIDER-MAN</span>
+          </button>
+          <button class="heroe" style="--color:#c9302c" data-boom="¡PIU PIU!" data-sonido="piu" data-frase="¡Volando directo a la torta!">
+            <img src="img/ironman.png" alt=""><span>IRON MAN</span>
+          </button>
+          <button class="heroe" style="--color:var(--verde)" data-boom="¡SMASH!" data-sonido="smash" data-frase="¡Hulk aplasta… globos!">
+            <img src="img/hulk.png" alt=""><span>HULK</span>
+          </button>
+          <button class="heroe" style="--color:var(--gris)" data-boom="¡KABOOM!" data-sonido="trueno" data-frase="¡Que llueva diversión!">
+            <img src="img/thor.png" alt=""><span>THOR</span>
+          </button>
+          <button class="heroe" style="--color:var(--azul)" data-boom="¡CLANG!" data-sonido="clang" data-frase="¡Escudo arriba y a jugar!">
+            <img src="img/capitan.png" alt=""><span>CAPITÁN AMÉRICA</span>
+          </button>
+        </div>
+        <p class="frase-heroe" id="fraseHeroe" aria-live="polite"><span>¿Quién es tu favorito?</span></p>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         5. FOTOS DE BENI COMO VIÑETAS (al tocarlas se sacuden)
+         ================================================================= -->
+    <section class="seccion fotos">
+      <div class="contenedor">
+        <div class="revelar">
+          <p class="narrador">MIENTRAS TANTO, EN EL PARQUE…</p>
+          <h2 class="titulo-comic">¡EL HÉROE DEL CUMPLE!</h2>
+        </div>
+        <div class="tira revelar">
+          <button class="panel-foto"><p>Entrenando para la misión…</p><img src="img/beni1.jpg" alt="Beni disfrazado de Spider-Man sonriendo" loading="lazy"></button>
+          <button class="panel-foto"><p>¡Modo araña activado!</p><img src="img/beni2.jpg" alt="Beni agachado en pose de Spider-Man" loading="lazy"></button>
+          <button class="panel-foto"><p>¡Listo para lanzar telarañas!</p><img src="img/beni3.jpg" alt="Beni lanzando telarañas" loading="lazy"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         6. DISFRAZ (opcional)
+         ================================================================= -->
+    <section class="seccion disfraz">
+      <div class="contenedor revelar">
+        <p class="narrador" style="color:var(--negro)">CÓDIGO DE VESTIMENTA</p>
+        <h2 class="titulo-comic" style="color:var(--amarillo)">¡MODO SUPERHÉROE!</h2>
+        <p>Si querés, vení disfrazado de tu superhéroe favorito. ¡Capas y máscaras bienvenidas!</p>
+        <div class="mascaras" aria-hidden="true">
+          <img src="img/capitan.png" alt=""><img src="img/hulk.png" alt=""><img src="img/spiderman.png" alt=""><img src="img/thor.png" alt=""><img src="img/ironman.png" alt="">
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         7. CONFIRMAR: arma un mensaje y abre WhatsApp
+         ================================================================= -->
+    <section class="seccion confirmar" id="confirmar">
+      <div class="contenedor" style="max-width:520px">
+        <div class="revelar">
+          <p class="narrador" style="background:var(--blanco)">¿TE SUMÁS AL EQUIPO?</p>
+          <h2 class="titulo-comic" style="color:var(--azul)">CONFIRMÁ TU LUGAR</h2>
+        </div>
+        <form class="formulario revelar" id="formRsvp">
+          <div>
+            <label for="nombre">Nombre del superhéroe invitado</label>
+            <input id="nombre" required placeholder="Ej: Tomi">
+          </div>
+          <div>
+            <label>¿Venís a la misión?</label>
+            <div class="opciones">
+              <input type="radio" name="asiste" id="siVa" value="si" checked><label for="siVa">¡Sí, voy! 💪</label>
+              <input type="radio" name="asiste" id="noVa" value="no"><label for="noVa">No puedo 😢</label>
+            </div>
+          </div>
+          <div>
+            <label for="adultos">¿Cuántos adultos lo acompañan?</label>
+            <select id="adultos"><option>0</option><option selected>1</option><option>2</option><option>3</option></select>
+          </div>
+          <button class="btn" type="submit">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 2.5 1 3 .8 3.6.8.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4ZM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg>
+            ¡Enviar por WhatsApp!
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         8. CIERRE
+         ================================================================= -->
+    <footer class="cierre">
+      <h2 class="titulo-comic revelar">¡TE ESPERO,<br>SUPERHÉROE!</h2>
+      <div class="fila-heroes" aria-hidden="true">
+        <img src="img/thor.png" alt=""><img src="img/capitan.png" alt=""><img src="img/spiderman.png" alt=""><img src="img/hulk.png" alt=""><img src="img/ironman.png" alt="">
+      </div>
+      <p class="firma">— BENI</p>
+      <p class="creditos">Invitación creada por <a href="https://www.invitacionescyc.com/" target="_blank" rel="noopener">CyC Invitaciones</a></p>
+    </footer>
+  </main>
+
+  <!-- Música + botón con forma de escudo -->
+  <!-- Canción de Spidey y su Superequipo. "#t=5" hace que arranque en el segundo 5.
+       Sin "loop": la repetición la maneja el JS para que vuelva al segundo 5 y no al 0.
+       (Los espacios del nombre del archivo van como %20) -->
+  <audio id="audio" src="audio/Marvel%20Spidey%20y%20su%20Superequipo_%20Canci%C3%B3n%20de%20cabecera%20_%20Disney%20Junior%20Oficial.mp3#t=5" preload="none"></audio>
+  <button class="btn-escudo" id="btnMusica" aria-label="Reproducir o pausar música" hidden>
+    <svg class="icono-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7Z"/></svg>
+    <svg class="icono-pausa" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+  </button>
+
+  <!-- =================================================================
+       JAVASCRIPT
+       ================================================================= -->
+  <script>
+    // ============================================================
+    // ⚙ CONFIGURACIÓN
+    // ============================================================
+    const CONFIG = {
+      inicio: '2026-12-05T18:00:00-03:00',   // sábado 5/12, 18 hs (hora Argentina)
+      fin:    '2026-12-05T21:00:00-03:00',
+      tituloEvento: '¡Cumple 4 de Beni! 🕷️',
+      lugarEvento: 'Salón de fiestas, Roldán, Santa Fe',
+      // ⚠ Reemplazar por el link de Google Maps del salón
+      mapa: 'https://www.google.com/maps/search/?api=1&query=Rold%C3%A1n%2C+Santa+Fe',
+      // WhatsApp que recibe las confirmaciones (formato internacional, sin + ni espacios)
+      whatsapp: '5493416837459'
+    };
+
+    const $ = id => document.getElementById(id);
+    $('btnMapa').href = CONFIG.mapa;
+
+    // ============================================================
+    // ESTRELLAS DE CÓMIC: arma el recorte (clip-path) con puntas
+    // ============================================================
+    function poligonoEstrella(puntas = 14, interior = 0.72) {
+      const pts = [];
+      for (let i = 0; i < puntas * 2; i++) {
+        const radio = i % 2 === 0 ? 50 : 50 * interior;          // alterna punta / hueco
+        const ang = (Math.PI * i) / puntas - Math.PI / 2;
+        pts.push(`${50 + radio * Math.cos(ang)}% ${50 + radio * Math.sin(ang)}%`);
+      }
+      return `polygon(${pts.join(',')})`;
+    }
+    document.querySelectorAll('.estrella').forEach(el => el.style.clipPath = poligonoEstrella());
+
+    // ============================================================
+    // SONIDOS: se generan con el navegador (Web Audio), sin archivos
+    // ============================================================
+    let ctx;
+    function audioCtx() { return ctx || (ctx = new (window.AudioContext || window.webkitAudioContext)()); }
+
+    // Tono que va de una frecuencia a otra (ej: "piu" de láser)
+    function tono(f1, f2, dur, tipo = 'square', vol = .15, demora = 0) {
+      const c = audioCtx(), t = c.currentTime + demora;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = tipo; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur);
+    }
+    // Ruido filtrado (ej: "fsshh" de telaraña o trueno)
+    function ruido(dur, filtro, f1, f2, vol = .3, demora = 0) {
+      const c = audioCtx(), t = c.currentTime + demora;
+      const buf = c.createBuffer(1, c.sampleRate * dur, c.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = buf; f.type = filtro;
+      f.frequency.setValueAtTime(f1, t); f.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      s.connect(f).connect(g).connect(c.destination); s.start(t);
+    }
+    const SONIDOS = {
+      thwip:   () => ruido(.25, 'bandpass', 4000, 600, .5),
+      piu:     () => { tono(1400, 200, .18); tono(1400, 200, .18, 'square', .15, .2); },
+      smash:   () => { tono(90, 35, .5, 'sine', .6); ruido(.4, 'lowpass', 900, 80, .5); },
+      trueno:  () => { ruido(1.2, 'lowpass', 1200, 60, .6); tono(60, 30, 1, 'sine', .4); },
+      clang:   () => [523, 1250, 2093].forEach((f, i) => tono(f, f * .98, .7, 'triangle', .12 / (i + 1))),
+      pop:     () => tono(500, 1100, .09, 'sine', .25),
+      powerup: () => [262, 330, 392, 523, 659, 784].forEach((f, i) => tono(f, f * 1.02, .12, 'square', .1, i * .07))
+    };
+    function sonar(nombre) { try { SONIDOS[nombre](); } catch (e) { /* sin audio: no pasa nada */ } }
+
+    // ============================================================
+    // ONOMATOPEYA ("¡POW!") en una posición de la pantalla
+    // ============================================================
+    function boom(texto, x, y, color) {
+      const el = document.createElement('div');
+      el.className = 'boom';
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+      if (color) el.style.setProperty('--color', color);
+      // Estrella negra (borde) con otra estrella de color adentro
+      el.innerHTML = `<div><div><span>${texto}</span></div></div>`;
+      el.querySelectorAll('div').forEach(d => d.style.clipPath = poligonoEstrella(12, .7));
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 950);
+    }
+
+    // Lluvia de confeti con los colores de los héroes
+    function confeti(cantidad = 70) {
+      const colores = ['#e23636', '#1f5fbf', '#ffd23f', '#3fae49', '#ffffff'];
+      for (let i = 0; i < cantidad; i++) {
+        const c = document.createElement('div');
+        c.className = 'confeti';
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.background = colores[i % colores.length];
+        c.style.borderRadius = i % 3 === 0 ? '50%' : '2px';
+        c.style.setProperty('--x', (Math.random() * 160 - 80) + 'px');
+        c.style.setProperty('--giro', (Math.random() * 900) + 'deg');
+        c.style.setProperty('--dur', (2.2 + Math.random() * 1.8) + 's');
+        c.style.setProperty('--delay', (Math.random() * .6) + 's');
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4800);
+      }
+    }
+
+    // ============================================================
+    // 0. BOTÓN GIGANTE: abre la invitación
+    // ============================================================
+    const audio = $('audio');
+    const btnMusica = $('btnMusica');
+    let abierta = false;
+
+    $('botonGigante').addEventListener('click', e => {
+      if (abierta) return;
+      abierta = true;
+      sonar('powerup'); setTimeout(() => sonar('thwip'), 450);
+      $('alerta').classList.add('activando');                 // se dibuja la telaraña
+      boom('¡THWIP!', e.clientX || innerWidth / 2, e.clientY || innerHeight / 2, '#ffd23f');
+      reproducir();                                            // el toque habilita la música
+      setTimeout(() => {
+        $('destello').classList.add('activo');                 // ¡flash!
+        $('alerta').classList.add('cerrada');                  // la alerta sube como persiana
+        document.body.classList.remove('bloqueado');
+        btnMusica.hidden = false;
+        confeti();
+      }, 1100);
+    });
+
+    // ============================================================
+    // MÚSICA (botón escudo)
+    // ============================================================
+    const INICIO_CANCION = 5;   // segundo desde el que arranca la canción
+    // Cuando termina, vuelve a empezar desde el segundo 5 (en vez de usar "loop", que volvería al 0)
+    audio.addEventListener('ended', () => { audio.currentTime = INICIO_CANCION; audio.play(); });
+
+    function reproducir() {
+      audio.volume = .55;
+      if (audio.currentTime < INICIO_CANCION && audio.readyState > 0) audio.currentTime = INICIO_CANCION;
+      audio.play().then(() => btnMusica.classList.add('sonando')).catch(() => {});
+    }
+    btnMusica.addEventListener('click', () => {
+      if (audio.paused) reproducir();
+      else { audio.pause(); btnMusica.classList.remove('sonando'); }
+    });
+    document.addEventListener('visibilitychange', () => {   // pausa si se bloquea el celular
+      if (document.hidden && !audio.paused) { audio.pause(); btnMusica.classList.remove('sonando'); }
+    });
+
+    // ============================================================
+    // 2. AGENDAR EN GOOGLE CALENDAR
+    // ============================================================
+    $('btnAgendar').addEventListener('click', () => {
+      const f = s => new Date(s).toISOString().replace(/[-:]|\.\d{3}/g, '');
+      window.open('https://www.google.com/calendar/render?action=TEMPLATE'
+        + '&text=' + encodeURIComponent(CONFIG.tituloEvento)
+        + '&dates=' + f(CONFIG.inicio) + '/' + f(CONFIG.fin)
+        + '&location=' + encodeURIComponent(CONFIG.lugarEvento), '_blank');
+    });
+
+    // ============================================================
+    // 3. CUENTA REGRESIVA
+    // ============================================================
+    const objetivo = new Date(CONFIG.inicio).getTime();
+    function actualizar() {
+      const resta = objetivo - Date.now();
+      if (resta <= 0) {
+        $('reloj').hidden = true; $('hoy').hidden = false; $('cuentaTitulo').textContent = '¡LLEGÓ EL DÍA!';
+        clearInterval(intervalo); return;
+      }
+      $('dias').textContent = Math.floor(resta / 86400000);
+      $('horas').textContent = Math.floor(resta % 86400000 / 3600000);
+      $('minutos').textContent = Math.floor(resta % 3600000 / 60000);
+      const seg = $('segundos');
+      seg.textContent = Math.floor(resta % 60000 / 1000);
+      seg.classList.remove('tic'); void seg.offsetWidth; seg.classList.add('tic');   // reinicia el "salto"
+    }
+    const intervalo = setInterval(actualizar, 1000);
+    actualizar();
+
+    // ============================================================
+    // 4. TOCÁ UN SUPERHÉROE
+    // ============================================================
+    document.querySelectorAll('.heroe').forEach(h => h.addEventListener('click', e => {
+      sonar(h.dataset.sonido);
+      const r = h.getBoundingClientRect();
+      boom(h.dataset.boom, r.left + r.width / 2, r.top + 30, getComputedStyle(h).getPropertyValue('--color'));
+      h.classList.remove('saltando'); void h.offsetWidth; h.classList.add('saltando');
+      $('fraseHeroe').innerHTML = `<span>${h.dataset.frase}</span>`;
+    }));
+
+    // ============================================================
+    // 5. FOTOS: se sacuden con un "¡THWIP!"
+    // ============================================================
+    document.querySelectorAll('.panel-foto').forEach(p => p.addEventListener('click', e => {
+      sonar('thwip');
+      boom('¡THWIP!', e.clientX, e.clientY, '#e23636');
+      p.classList.remove('sacudir'); void p.offsetWidth; p.classList.add('sacudir');
+    }));
+
+    // ============================================================
+    // EXTRA: tocar un lugar vacío de la pantalla hace "¡POW!"
+    // ============================================================
+    const PALABRAS = ['¡POW!', '¡BAM!', '¡ZAP!', '¡WOW!', '¡BOOM!', '¡ZAS!'];
+    const COLORES = ['#ffd23f', '#e23636', '#1f5fbf', '#3fae49'];
+    document.addEventListener('click', e => {
+      if (!abierta || e.target.closest('a, button, input, select, label, form')) return;
+      sonar('pop');
+      boom(PALABRAS[Math.floor(Math.random() * PALABRAS.length)], e.clientX, e.clientY, COLORES[Math.floor(Math.random() * COLORES.length)]);
+    });
+
+    // ============================================================
+    // 7. CONFIRMAR → WhatsApp con el mensaje listo
+    // ============================================================
+    $('formRsvp').addEventListener('submit', e => {
+      e.preventDefault();
+      const nombre = $('nombre').value.trim();
+      const va = document.querySelector('input[name="asiste"]:checked').value === 'si';
+      const adultos = $('adultos').value;
+      const texto = va
+        ? `¡Hola! 🕷️ ${nombre} se suma a la misión del cumple de Beni el sábado 5/12. Vamos con ${adultos} adulto${adultos === '1' ? '' : 's'}. ¡Nos vemos ahí!`
+        : `¡Hola! ${nombre} no va a poder ir al cumple de Beni 😢 ¡Que lo disfrute muchísimo!`;
+      if (va) confeti(50);
+      window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`, '_blank');
+    });
+
+    // ============================================================
+    // APARICIÓN AL HACER SCROLL
+    // ============================================================
+    const obs = new IntersectionObserver(ents => ents.forEach(en => {
+      if (en.isIntersecting) { en.target.classList.add('visible'); obs.unobserve(en.target); }
+    }), { threshold: .15 });
+    document.querySelectorAll('.revelar').forEach(el => obs.observe(el));
+  </script>
+</body>
+</html>
