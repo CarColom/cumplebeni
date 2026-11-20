@@ -30,7 +30,7 @@
   <!-- Vista previa al compartir por WhatsApp: la imagen y la URL deben ser direcciones completas.
        Si el repositorio de GitHub tiene otro nombre, cambiar "cumplebeni" en estas dos líneas. -->
   <meta property="og:title" content="¡Beni cumple 4! 🕷️ Misión Superhéroes">
-  <meta property="og:description" content="Sábado 5 de diciembre · 18 a 21 hs · Roldán">
+  <meta property="og:description" content="Sábado 5 de diciembre · 18 a 21 hs · SUM María Madre del Salvador, Roldán">
   <meta property="og:image" content="https://carcolom.github.io/cumplebeni/img/beni3.jpg">
   <meta property="og:url" content="https://carcolom.github.io/cumplebeni/">
   <meta property="og:type" content="website">
@@ -255,6 +255,7 @@
     .dato-icono svg { width: 30px; height: 30px; }
     .dato small { display: block; font-family: 'Bangers', cursive; font-size: 1rem; letter-spacing: .08em; color: #5a6475; }
     .dato strong { font-size: clamp(1.2rem, 4.5vw, 1.5rem); line-height: 1.2; font-weight: 800; }
+    .dato .direccion { display: block; font-size: .98rem; color: #5a6475; line-height: 1.3; margin-top: 2px; }   /* calle del salón */
     .acciones { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
     .capi-escudo { position: absolute; bottom: -30px; left: -26px; width: 120px; transform: rotate(-8deg); filter: drop-shadow(3px 3px 0 var(--negro)); }
 
@@ -501,8 +502,11 @@
               <div class="dato-icono" style="background:#ffb3b3">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#141414" stroke-width="2.4"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               </div>
-              <!-- ⚠ Completá el nombre y la dirección del salón -->
-              <div><small>BASE SECRETA</small><strong>Salón de fiestas · Roldán</strong></div>
+              <div>
+                <small>BASE SECRETA</small>
+                <strong>SUM “María Madre del Salvador”</strong>
+                <span class="direccion">Av. Central Alberdi 938, Roldán</span>
+              </div>
             </div>
           </div>
           <div class="acciones">
@@ -625,10 +629,6 @@
               <input type="radio" name="asiste" id="noVa" value="no"><label for="noVa">No puedo 😢</label>
             </div>
           </div>
-          <div>
-            <label for="adultos">¿Cuántos adultos lo acompañan?</label>
-            <select id="adultos"><option>0</option><option selected>1</option><option>2</option><option>3</option></select>
-          </div>
           <button class="btn" type="submit">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 2.5 1 3 .8 3.6.8.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4ZM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg>
             ¡Enviar por WhatsApp!
@@ -671,9 +671,9 @@
       inicio: '2026-12-05T18:00:00-03:00',   // sábado 5/12, 18 hs (hora Argentina)
       fin:    '2026-12-05T21:00:00-03:00',
       tituloEvento: '¡Cumple 4 de Beni! 🕷️',
-      lugarEvento: 'Salón de fiestas, Roldán, Santa Fe',
-      // ⚠ Reemplazar por el link de Google Maps del salón
-      mapa: 'https://www.google.com/maps/search/?api=1&query=Rold%C3%A1n%2C+Santa+Fe',
+      lugarEvento: 'SUM María Madre del Salvador, Av. Central Alberdi 938, Roldán, Santa Fe',
+      // Abre Google Maps con la dirección del salón
+      mapa: 'https://www.google.com/maps/search/?api=1&query=Av.+Central+Alberdi+938%2C+Rold%C3%A1n%2C+Santa+Fe',
       // WhatsApp que recibe las confirmaciones (formato internacional, sin + ni espacios)
       whatsapp: '5493416837459'
     };
@@ -876,9 +876,8 @@
       e.preventDefault();
       const nombre = $('nombre').value.trim();
       const va = document.querySelector('input[name="asiste"]:checked').value === 'si';
-      const adultos = $('adultos').value;
       const texto = va
-        ? `¡Hola! 🕷️ ${nombre} se suma a la misión del cumple de Beni el sábado 5/12. Vamos con ${adultos} adulto${adultos === '1' ? '' : 's'}. ¡Nos vemos ahí!`
+        ? `¡Hola! 🕷️ ${nombre} se suma a la misión del cumple de Beni el sábado 5/12. ¡Nos vemos ahí!`
         : `¡Hola! ${nombre} no va a poder ir al cumple de Beni 😢 ¡Que lo disfrute muchísimo!`;
       if (va) confeti(50);
       window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto)}`, '_blank');
